@@ -2,7 +2,6 @@ package snake
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -40,23 +39,6 @@ func TestSnake(t *testing.T) {
 
 		outSlice(m)
 	})
-}
-
-func initSlice(res *[10][13]string) {
-	for i := uint16(0); i < 10; i++ {
-		for j := uint16(0); j < 13; j++ {
-			res[i][j] = "."
-		}
-		res[i][12] = "\n"
-	}
-}
-func outSlice(res [10][13]string) {
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 13; j++ {
-			fmt.Printf(res[i][j])
-		}
-	}
-	fmt.Println()
 }
 
 func TestGameStart(t *testing.T) {
