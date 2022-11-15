@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"sync"
 	"unsafe"
+
+	"github.com/jinzhu/copier"
 )
 
 var caches = make(map[string]typ)
@@ -44,7 +46,7 @@ type iface struct {
 }
 
 func Copy(rsc, dst interface{}) error {
-	return copy(val(rsc), val(dst))
+	return copier.Copy(dst, rsc)
 }
 
 func val(v interface{}) value {
@@ -85,17 +87,18 @@ func parse(v interface{}) typ {
 }
 
 func parseStruct(v reflect.Type) typ {
-	res := typ{
-		rtyp:   v,
-		fields: make([]filed, v.NumField()),
-	}
-	for i := 0; i < v.NumField(); i++ {
-		f := v.Field(i)
-		res.fields[i].name = f.Name
-		res.fields[i].kind = f.Type.Kind()
-		res.fields[i].offset = int(f.Offset)
-	}
-	return res
+	//res := typ{
+	//	rtyp:   v,
+	//	fields: make([]filed, v.NumField()),
+	//}
+	//for i := 0; i < v.NumField(); i++ {
+	//	f := v.Field(i)
+	//	res.fields[i].name = f.Name
+	//	res.fields[i].kind = f.Type.Kind()
+	//	res.fields[i].offset = int(f.Offset)
+	//}
+	//return res
+	return typ{}
 }
 
 func validType(rsc, dst reflect.Kind) bool {
@@ -107,42 +110,44 @@ func validType(rsc, dst reflect.Kind) bool {
 	return false
 }
 
-// name 返回变量的偏移量
-func (t typ) find(s string) filed {
-	for _, f := range t.fields {
-		if f.name != s {
-			continue
-		}
-		return f
+//// name 返回变量的偏移量
+//func (t typ) find(s string) filed {
+//	//for _, f := range t.fields {
+//	//	if f.name != s {
+//	//		continue
+//	//	}
+//	//	return f
+//	//
+//	//}
+//	//return zerofiled
+//
+//	return field{}
+//}
 
-	}
-	return zerofiled
-}
-
-func copier(rsc, dst value) error {
-	for _, r := range rsc.typ.fields {
-		f := dst.typ.find(r.name)
-		if f == zerofiled {
-			continue
-		}
-
-		for _, d := range dst.typ.fields {
-			if r.name != d.name {
-				continue
-			}
-			if !validType(r.kind, d.kind) {
-				continue
-			}
-			switch r.kind {
-			case reflect.Int64:
-				*(*int64)(unsafe.Pointer(dst.addr + uintptr(d.offset))) = *(*int64)(unsafe.Pointer(rsc.addr + uintptr(d.offset)))
-			}
-
-		}
-	}
-
-	return nil
-}
+//func copier(rsc, dst value) error {
+//	for _, r := range rsc.typ.fields {
+//		f := dst.typ.find(r.name)
+//		if f == zerofiled {
+//			continue
+//		}
+//
+//		for _, d := range dst.typ.fields {
+//			if r.name != d.name {
+//				continue
+//			}
+//			if !validType(r.kind, d.kind) {
+//				continue
+//			}
+//			switch r.kind {
+//			case reflect.Int64:
+//				*(*int64)(unsafe.Pointer(dst.addr + uintptr(d.offset))) = *(*int64)(unsafe.Pointer(rsc.addr + uintptr(d.offset)))
+//			}
+//
+//		}
+//	}
+//
+//	return nil
+//}
 
 func assist(rsc, dst value) {
 }
