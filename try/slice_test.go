@@ -52,3 +52,88 @@ func Test_openDoor(t *testing.T) {
 		})
 	}
 }
+
+func TestMatch(t *testing.T) {
+	type args struct {
+		data []RoomInfo
+	}
+	tests := []struct {
+		name string
+		args args
+		want [][]RoomInfo
+	}{
+		{
+			name: "示例1",
+			args: args{
+				data: []RoomInfo{
+					{1, 1},
+					{2, 5},
+				},
+			},
+			want: [][]RoomInfo{
+				{{2, 5}, {1, 1}},
+			},
+		},
+		{
+			name: "示例1",
+			args: args{
+				data: []RoomInfo{
+					{1, 1},
+					{3, 1},
+					{2, 4},
+				},
+			},
+			want: [][]RoomInfo{
+				{{2, 4}, {1, 1}, {3, 1}},
+			},
+		},
+
+		{
+			name: "示例2",
+			args: args{
+				data: []RoomInfo{
+					{0, 1},
+					{0, 1},
+					{0, 4},
+					{0, 3},
+					{0, 3},
+					{0, 3},
+					{0, 5},
+					{0, 1},
+					{0, 4},
+					{0, 2},
+				},
+			},
+			want: [][]RoomInfo{
+				{{0, 3}, {0, 3}},
+				{{0, 5}, {0, 1}},
+				{{0, 4}, {0, 1}, {0, 1}},
+			},
+		},
+
+		{
+			name: "示例1",
+			args: args{
+				data: []RoomInfo{
+					{0, 1},
+					{0, 2},
+					{0, 2},
+					{0, 2},
+					{0, 2},
+					{0, 4},
+				},
+			},
+			want: [][]RoomInfo{
+				{{0, 4}, {0, 2}},
+				{{0, 2}, {0, 2}, {0, 2}},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Match(tt.args.data); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Match() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
