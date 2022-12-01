@@ -2,6 +2,7 @@ package md
 
 import (
 	"testing"
+	"unsafe"
 )
 
 func TestChan(t *testing.T) {
@@ -21,7 +22,9 @@ func TestChan(t *testing.T) {
 	//
 	//time.Sleep(1 * time.Second)
 
-	var i = make(map[string]interface{})
+	var i = make(map[string]struct {
+		Name string
+	})
 	t.Logf("%v", &i)
 }
 
@@ -35,6 +38,22 @@ func TestSlice(t *testing.T) {
 	a4 := a[2:]
 	_ = a4
 	t.Logf("a:%+v, a1:%+v,a2:%v,a3:%v", a, a1, a2, a3)
+}
+
+// TestStringToBytes string 和 []byte 互转相关测试
+// 1。string 底层记录的是字节长度而不是字符长度
+// 2  []rune 和 []int32 完全一样
+func TestStringToBytes(t *testing.T) {
+	s := "golang 大法好！"
+	bs := *(*[]byte)(unsafe.Pointer(&s))
+
+	t.Logf("字符串长度：%d，字节切片长度：%d\n", len(s), len(bs))
+	t.Logf("字符长度：%d，字节切片长度：%d\n", len([]rune(s)), len([]int32(s)))
+
+	for i, val := range bs {
+		t.Logf("%d: %b\n", i, val)
+	}
+
 }
 
 // 测试创建 chan 时的各种细节
