@@ -28,6 +28,8 @@ type A struct {
 	Uint64Pointer *uint64
 	StringPointer *string
 	BoolPointer   *bool
+
+	B B
 }
 type B struct {
 	Int8  int8
@@ -68,6 +70,10 @@ type D struct {
 	Bool   *bool
 }
 
+type E struct {
+	B B
+}
+
 func TestCopy(t *testing.T) {
 	type args struct {
 		form, to interface{}
@@ -85,6 +91,18 @@ func TestCopy(t *testing.T) {
 		Uint64: 64,
 		String: "show time",
 		Bool:   true,
+		B: B{
+			Int8:   8,
+			Int16:  16,
+			Int32:  32,
+			Int64:  64,
+			Uint8:  8,
+			Uint16: 16,
+			Uint32: 32,
+			Uint64: 64,
+			String: "show time",
+			Bool:   true,
+		},
 	}
 	from.Int8Pointer = &from.Int8
 	from.Int16Pointer = &from.Int16
@@ -155,6 +173,16 @@ func TestCopy(t *testing.T) {
 					Uint64: &from.Uint64,
 					String: &from.String,
 					Bool:   &from.Bool,
+				},
+			},
+		},
+		{
+			name: "结构体字段赋值",
+			args: args{
+				form: &from,
+				to:   &E{},
+				want: &E{
+					B: from.B,
 				},
 			},
 		},

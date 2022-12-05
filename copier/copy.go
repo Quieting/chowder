@@ -23,10 +23,15 @@ const (
 func Copy(rsc, dst interface{}) (err error) {
 	rscVal := valueOf(rsc)
 	dstVal := valueOf(dst)
+
 	for _, dstField := range dstVal {
 		for _, rscFild := range rscVal {
 			if !canCopy(dstField, rscFild) {
 				continue
+			}
+
+			if dstField.typ.Kind() == reflect.Struct {
+				copyForstruct(dstField, rscFild)
 			}
 
 			if dstField.field.indirectKind()&IndirectKind > 0 { // 基础数据类型值copy
@@ -109,6 +114,8 @@ func convert(t reflect.Type) Kind {
 		return String
 	case reflect.Bool:
 		return Bool
+	case reflect.Struct:
+		return Struct
 	default:
 		return Invalid
 	}
@@ -130,4 +137,25 @@ func writeMemory(addr uintptr, d []byte) {
 			Cap:  len(d),
 		}))
 	copy(*to, d)
+}
+
+func copyForstruct(dst, rsc *value) {
+	dstVal := valueOf(dst)
+	rscVal := valueOf(rsc)
+	for _, dstField := range dstVal {
+		for _, rscFild := range rscVal {
+			if !canCopy(dstField, rscFild) {
+				continue
+			}
+
+			if dstField.typ.Kind() == reflect.Struct {
+				copyForstruct(dstField, rscFild)
+			}
+
+			if dstField.field.indirectKind()&IndirectKind > 0 { // 基础数据类型值copy
+				memove(addr(rscFild, false), addr(dstField, true), minOffset(dstField, rscFild))
+			}
+			break
+		}
+	}
 }

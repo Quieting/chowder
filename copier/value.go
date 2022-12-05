@@ -59,17 +59,23 @@ func addr(val *value, isNew bool) uintptr {
 
 func valueOf(v interface{}) (vals []*value) {
 	var start uintptr // 底层数据存储起始位置
-	typ := reflect.TypeOf(v)
+	var typ reflect.Type
+	if val, ok := v.(*value); ok {
+		start = uintptr(val.addr)
+		typ = val.typ
+	} else {
+		typ = reflect.TypeOf(v)
 
-	// 验证参数类型(结构体或者结构体指针)
-	// todo：支持多级指针对象
-	// todo：支持 slice、array、map 类型
-	if typ.Kind() == reflect.Pointer {
-		start = reflect.ValueOf(v).Pointer()
-		typ = typ.Elem()
-	}
-	if typ.Kind() != reflect.Struct {
-		return
+		// 验证参数类型(结构体或者结构体指针)
+		// todo：支持多级指针对象
+		// todo：支持 slice、array、map 类型
+		if typ.Kind() == reflect.Pointer {
+			start = reflect.ValueOf(v).Pointer()
+			typ = typ.Elem()
+		}
+		if typ.Kind() != reflect.Struct {
+			return
+		}
 	}
 
 	if start == 0 {
