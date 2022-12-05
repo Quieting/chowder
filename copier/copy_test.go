@@ -1,39 +1,124 @@
 package copier
 
 import (
-	"fmt"
+	"reflect"
 	"testing"
 	"unsafe"
 )
 
 type A struct {
-	age   int64
-	name  string
-	grade int64
+	Int8   int8
+	Int16  int16
+	Int32  int32
+	Int64  int64
+	String string
+
+	Int8Pointer   *int8
+	Int16Pointer  *int16
+	Int32Pointer  *int32
+	Int64Pointer  *int64
+	StringPointer *string
 }
 type B struct {
-	num   int8
-	age   int32
-	grade *int64
-	name  string
-	names []string
+	Int8   int8
+	Int16  int16
+	Int32  int32
+	Int64  int64
+	String string
+}
+type C struct {
+	Int8Pointer   *int8
+	Int16Pointer  *int16
+	Int32Pointer  *int32
+	Int64Pointer  *int64
+	StringPointer *string
+}
+type D struct {
+	Int8   *int8
+	Int16  *int16
+	Int32  *int32
+	Int64  *int64
+	String *string
 }
 
 func TestCopy(t *testing.T) {
-	a := A{
-		age:   20,
-		name:  "Jack",
-		grade: 10,
+	type args struct {
+		form, to interface{}
+		want     interface{}
 	}
-	b := B{
-		age:   10,
-		grade: new(int64),
-	}
-	fmt.Printf("a = %p, b=%p\n", &a, &b)
-	fmt.Printf("%d\n", unsafe.Sizeof(&b.name))
 
-	Copy(&a, &b)
-	t.Logf("rsc: %+v, dst: %+v\n", a, b)
+	from := A{
+		Int8:   8,
+		Int16:  16,
+		Int32:  32,
+		Int64:  64,
+		String: "show time",
+	}
+	from.Int8Pointer = &from.Int8
+	from.Int16Pointer = &from.Int16
+	from.Int32Pointer = &from.Int32
+	from.Int64Pointer = &from.Int64
+	from.StringPointer = &from.String
+
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "基础数据类型赋值",
+			args: args{
+				form: &from,
+				to:   &B{},
+				want: &B{
+					Int8:   from.Int8,
+					Int16:  from.Int16,
+					Int32:  from.Int32,
+					Int64:  from.Int64,
+					String: from.String,
+				},
+			},
+		},
+		{
+			name: "指针类型赋值",
+			args: args{
+				form: &from,
+				to:   &C{},
+				want: &C{
+					Int8Pointer:   from.Int8Pointer,
+					Int16Pointer:  from.Int16Pointer,
+					Int32Pointer:  from.Int32Pointer,
+					Int64Pointer:  from.Int64Pointer,
+					StringPointer: from.StringPointer,
+				},
+			},
+		},
+		{
+			name: "指针类型和非指针类型赋值",
+			args: args{
+				form: &from,
+				to:   &D{},
+				want: &D{
+					Int8:   from.Int8Pointer,
+					Int16:  from.Int16Pointer,
+					Int32:  from.Int32Pointer,
+					Int64:  from.Int64Pointer,
+					String: from.StringPointer,
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := Copy(tt.args.form, tt.args.to)
+			if err != nil {
+				t.Errorf("not want error")
+			}
+			if !reflect.DeepEqual(tt.args.want, tt.args.to) {
+				t.Errorf("want: %+v, got: %+v\n", tt.args.want, tt.args.to)
+			}
+		})
+	}
 }
 
 func TestSizeOf(t *testing.T) {

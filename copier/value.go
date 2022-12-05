@@ -1,7 +1,6 @@
 package copier
 
 import (
-	"fmt"
 	"reflect"
 	"unsafe"
 )
@@ -34,29 +33,38 @@ func (v *value) size() int {
 	}
 }
 
-func addr(val *value) uintptr {
+// isNew： 指针变为nil时是否申请新的地址
+func addr(val *value, isNew bool) uintptr {
 	// todo：添加其他指针类型数据类型（扩展 reflect.Kind)
 	if val.typ.Kind() != reflect.Pointer {
 		return val.addr
 	}
 
+	point := val.addr
 	val.addr = *(*uintptr)(unsafe.Pointer(val.addr)) // 指针对象取对象存储值（值是一个地址）
 	val.typ = val.typ.Elem()
+	if val.addr == 0 && isNew {
+		val.addr = reflect.New(val.typ).Pointer()
+		*(*uintptr)(unsafe.Pointer(point)) = val.addr
+	}
 
-	return addr(val)
+	return addr(val, isNew)
 }
 
 func valueOf(v interface{}) (vals []*value) {
 	typ := reflect.TypeOf(v)
 
 	// 验证参数类型(结构体或者结构体指针)
+	// todo：支持多级指针对象
+	// todo：支持 slice、array、map 类型
 	if typ.Kind() == reflect.Pointer {
 		typ = typ.Elem()
 	}
 	if typ.Kind() != reflect.Struct {
 		return
 	}
-	var start = reflect.ValueOf(v).Pointer()
+
+	var start = reflect.ValueOf(v).Pointer() // 底层数据存储起始位置
 
 	fields := get(typ)
 	vals = make([]*value, 0, len(fields))
@@ -66,7 +74,7 @@ func valueOf(v interface{}) (vals []*value) {
 			typ:   f.typ,
 			field: f,
 		}
-		fmt.Println(f.name(), (uintptr)(unsafe.Pointer(val.addr)))
+
 		vals = append(vals, val)
 	}
 

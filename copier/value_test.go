@@ -21,3 +21,7 @@ func TestAddr(t *testing.T) {
 	// t.Logf("a1 = %+v, a2: %+v\n", a1, a2)
 
 }
+
+func TestValueOf(t *testing.T) {
+
+}

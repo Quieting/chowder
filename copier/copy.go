@@ -23,8 +23,7 @@ func Copy(rsc, dst interface{}) (err error) {
 			if !canCopy(dstField, rscFild) {
 				continue
 			}
-			memove(addr(rscFild), addr(dstField), minOffset(dstField, rscFild))
-
+			memove(addr(rscFild, false), addr(dstField, true), minOffset(dstField, rscFild))
 			break
 		}
 
@@ -48,6 +47,9 @@ func minOffset(a, b *value) int {
 }
 
 func memove(from, to uintptr, size int) {
+	if from == 0 || to == 0 {
+		return
+	}
 	switch size {
 	case 1:
 		var b *[1]byte
