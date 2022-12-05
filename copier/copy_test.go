@@ -11,34 +11,61 @@ type A struct {
 	Int16  int16
 	Int32  int32
 	Int64  int64
+	Uint8  uint8
+	Uint16 uint16
+	Uint32 uint32
+	Uint64 uint64
 	String string
+	Bool   bool
 
 	Int8Pointer   *int8
 	Int16Pointer  *int16
 	Int32Pointer  *int32
 	Int64Pointer  *int64
+	Uint8Pointer  *uint8
+	Uint16Pointer *uint16
+	Uint32Pointer *uint32
+	Uint64Pointer *uint64
 	StringPointer *string
+	BoolPointer   *bool
 }
 type B struct {
-	Int8   int8
-	Int16  int16
-	Int32  int32
-	Int64  int64
+	Int8  int8
+	Int16 int16
+	Int32 int32
+	Int64 int64
+
+	Uint8  uint8
+	Uint16 uint16
+	Uint32 uint32
+	Uint64 uint64
+
 	String string
+	Bool   bool
 }
 type C struct {
 	Int8Pointer   *int8
 	Int16Pointer  *int16
 	Int32Pointer  *int32
 	Int64Pointer  *int64
+	Uint8Pointer  *uint8
+	Uint16Pointer *uint16
+	Uint32Pointer *uint32
+	Uint64Pointer *uint64
 	StringPointer *string
+	BoolPointer   *bool
 }
 type D struct {
 	Int8   *int8
 	Int16  *int16
 	Int32  *int32
 	Int64  *int64
+	Uint8  *uint8
+	Uint16 *uint16
+	Uint32 *uint32
+	Uint64 *uint64
 	String *string
+	Bool   *bool
 }
 
 func TestCopy(t *testing.T) {
@@ -52,13 +79,23 @@ func TestCopy(t *testing.T) {
 		Int16:  16,
 		Int32:  32,
 		Int64:  64,
+		Uint8:  8,
+		Uint16: 16,
+		Uint32: 32,
+		Uint64: 64,
 		String: "show time",
+		Bool:   true,
 	}
 	from.Int8Pointer = &from.Int8
 	from.Int16Pointer = &from.Int16
 	from.Int32Pointer = &from.Int32
 	from.Int64Pointer = &from.Int64
+	from.Uint8Pointer = &from.Uint8
+	from.Uint16Pointer = &from.Uint16
+	from.Uint32Pointer = &from.Uint32
+	from.Uint64Pointer = &from.Uint64
 	from.StringPointer = &from.String
+	from.BoolPointer = &from.Bool
 
 	tests := []struct {
 		name string
@@ -74,7 +111,12 @@ func TestCopy(t *testing.T) {
 					Int16:  from.Int16,
 					Int32:  from.Int32,
 					Int64:  from.Int64,
+					Uint8:  from.Uint8,
+					Uint16: from.Uint16,
+					Uint32: from.Uint32,
+					Uint64: from.Uint64,
 					String: from.String,
+					Bool:   from.Bool,
 				},
 			},
 		},
@@ -88,7 +130,12 @@ func TestCopy(t *testing.T) {
 					Int16Pointer:  from.Int16Pointer,
 					Int32Pointer:  from.Int32Pointer,
 					Int64Pointer:  from.Int64Pointer,
+					Uint8Pointer:  from.Uint8Pointer,
+					Uint16Pointer: from.Uint16Pointer,
+					Uint32Pointer: from.Uint32Pointer,
+					Uint64Pointer: from.Uint64Pointer,
 					StringPointer: from.StringPointer,
+					BoolPointer:   from.BoolPointer,
 				},
 			},
 		},
@@ -98,11 +145,16 @@ func TestCopy(t *testing.T) {
 				form: &from,
 				to:   &D{},
 				want: &D{
-					Int8:   from.Int8Pointer,
-					Int16:  from.Int16Pointer,
-					Int32:  from.Int32Pointer,
-					Int64:  from.Int64Pointer,
-					String: from.StringPointer,
+					Int8:   &from.Int8,
+					Int16:  &from.Int16,
+					Int32:  &from.Int32,
+					Int64:  &from.Int64,
+					Uint8:  &from.Uint8,
+					Uint16: &from.Uint16,
+					Uint32: &from.Uint32,
+					Uint64: &from.Uint64,
+					String: &from.String,
+					Bool:   &from.Bool,
 				},
 			},
 		},
