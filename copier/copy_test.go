@@ -2,80 +2,32 @@ package copier
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 	"unsafe"
 )
 
 type A struct {
-	age  int64
-	name string
+	age   int64
+	name  string
+	grade int64
 }
 type B struct {
 	num   int8
 	age   int32
+	grade *int64
 	name  string
 	names []string
 }
 
-func Test_parse(t *testing.T) {
-	type args struct {
-		v interface{}
-	}
-	tests := []struct {
-		name string
-		args args
-		want []*field
-	}{
-		{
-			name: "结构体测试",
-			args: args{v: A{}},
-			want: []*field{
-				{Name: "age", Position: 0, Kind: Number, Len: 8},
-				{Name: "name", Position: 8, Kind: String, Len: 8},
-			},
-		},
-		{
-			name: "结构体指针",
-			args: args{
-				v: A{},
-			},
-			want: []*field{
-				{Name: "age", Position: 0, Kind: Number, Len: 8},
-				{Name: "name", Position: 8, Kind: String, Len: 8},
-			},
-		},
-		{
-			name: "结构体内存对齐",
-			args: args{
-				v: B{},
-			},
-			want: []*field{
-				{Name: "num", Position: 0, Kind: Number, Len: 1},
-				{Name: "age", Position: 8, Kind: Number, Len: 8},
-				{Name: "name", Position: 16, Kind: String, Len: 8},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := parseStruct(reflect.TypeOf(tt.args.v))
-			for i, val := range got {
-				if !reflect.DeepEqual(val, tt.want[i]) {
-					t.Errorf("got = %v, want %v", val, tt.want[i])
-				}
-			}
-		})
-	}
-}
-
 func TestCopy(t *testing.T) {
 	a := A{
-		age:  20,
-		name: "Jack",
+		age:   20,
+		name:  "Jack",
+		grade: 10,
 	}
 	b := B{
-		age: 10,
+		age:   10,
+		grade: new(int64),
 	}
 	fmt.Printf("a = %p, b=%p\n", &a, &b)
 	fmt.Printf("%d\n", unsafe.Sizeof(&b.name))
@@ -106,9 +58,9 @@ func Test_memove(t *testing.T) {
 	}
 	from, to := A{Int8: 8, Strings: []string{"jack", "tom"}}, A{}
 	type args struct {
-		from unsafe.Pointer
-		to   unsafe.Pointer
-		len  int64
+		from uintptr
+		to   uintptr
+		len  int
 	}
 	tests := []struct {
 		name string
@@ -117,23 +69,24 @@ func Test_memove(t *testing.T) {
 		{
 			name: "int8 赋值",
 			args: args{
-				from: unsafe.Pointer(&(from.Int8)),
-				to:   unsafe.Pointer(&(to.Int16)),
+				from: uintptr(unsafe.Pointer(&(from.Int8))),
+				to:   uintptr(unsafe.Pointer(&(to.Int16))),
 				len:  1,
 			},
 		},
 		{
 			name: "slice 赋值",
 			args: args{
-				from: unsafe.Pointer(&(from.Strings)),
-				to:   unsafe.Pointer(&(to.Strings)),
+				from: uintptr(unsafe.Pointer(&(from.Strings))),
+				to:   uintptr(unsafe.Pointer(&(to.Strings))),
 				len:  24,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			memove(tt.args.from, tt.args.to, tt.args.len)
+			// memove(tt.args.from, tt.args.to, tt.args.len)
+			memove1(tt.args.from, tt.args.to, tt.args.len)
 			t.Logf("from: %+v, to:%+v", from, to)
 		})
 	}
