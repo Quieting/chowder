@@ -15,7 +15,6 @@ type value struct {
 }
 
 func (v *value) size() int {
-	// todo: 完善每种类型所占长度
 	switch v.typ.Kind() {
 	case reflect.Int8, reflect.Uint8, reflect.Bool:
 		return 1
@@ -31,7 +30,7 @@ func (v *value) size() int {
 		return intSize
 	case reflect.Pointer, reflect.Uintptr, reflect.Array, reflect.Map:
 		return ptrSize
-	case reflect.String:
+	case reflect.String: // todo: 考虑copy底层数组？
 		return ptrSize + intSize
 	case reflect.Slice:
 		return ptrSize + intSize + intSize
@@ -59,19 +58,23 @@ func addr(val *value, isNew bool) uintptr {
 }
 
 func valueOf(v interface{}) (vals []*value) {
+	var start uintptr // 底层数据存储起始位置
 	typ := reflect.TypeOf(v)
 
 	// 验证参数类型(结构体或者结构体指针)
 	// todo：支持多级指针对象
 	// todo：支持 slice、array、map 类型
 	if typ.Kind() == reflect.Pointer {
+		start = reflect.ValueOf(v).Pointer()
 		typ = typ.Elem()
 	}
 	if typ.Kind() != reflect.Struct {
 		return
 	}
 
-	var start = reflect.ValueOf(v).Pointer() // 底层数据存储起始位置
+	if start == 0 {
+		return
+	}
 
 	fields := get(typ)
 	vals = make([]*value, 0, len(fields))

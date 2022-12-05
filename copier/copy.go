@@ -8,11 +8,16 @@ import (
 type Kind int
 
 const (
-	Invalid Kind = iota
+	Invalid Kind = 1 << iota
 	Number
 	Float
+	Bool
 	String
+	Struct
 	Point
+)
+const (
+	IndirectKind = Number | Float | Bool | String
 )
 
 func Copy(rsc, dst interface{}) (err error) {
@@ -23,7 +28,10 @@ func Copy(rsc, dst interface{}) (err error) {
 			if !canCopy(dstField, rscFild) {
 				continue
 			}
-			memove(addr(rscFild, false), addr(dstField, true), minOffset(dstField, rscFild))
+
+			if dstField.field.indirectKind()&IndirectKind > 0 { // 基础数据类型值copy
+				memove(addr(rscFild, false), addr(dstField, true), minOffset(dstField, rscFild))
+			}
 			break
 		}
 
@@ -33,9 +41,15 @@ func Copy(rsc, dst interface{}) (err error) {
 }
 
 func canCopy(rsc, dst *value) bool {
-	if rsc.field.indirectKind() != dst.field.indirectKind() {
+	if rsc.field.kind() == Invalid || rsc.field.indirectKind() == Invalid ||
+		dst.field.kind() == Invalid || dst.field.indirectKind() == IndirectKind {
 		return false
 	}
+
+	if rsc.field.indirectKind() != dst.field.indirectKind() { // 底层数据类型一致
+		return false
+	}
+
 	return rsc.field.name() == dst.field.name()
 }
 
@@ -93,6 +107,8 @@ func convert(t reflect.Type) Kind {
 		return convert(t.Elem())
 	case reflect.String:
 		return String
+	case reflect.Bool:
+		return Bool
 	default:
 		return Invalid
 	}
