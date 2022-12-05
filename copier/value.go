@@ -5,6 +5,9 @@ import (
 	"unsafe"
 )
 
+var intSize = int(unsafe.Sizeof(0))
+var ptrSize = int(unsafe.Sizeof(new(int)))
+
 type value struct {
 	addr  unsafe.Pointer
 	typ   reflect.Type // addr 位置存储的类型
@@ -14,22 +17,26 @@ type value struct {
 func (v *value) size() int {
 	// todo: 完善每种类型所占长度
 	switch v.typ.Kind() {
-	case reflect.Int8, reflect.Uint8:
+	case reflect.Int8, reflect.Uint8, reflect.Bool:
 		return 1
 	case reflect.Int16, reflect.Uint16:
 		return 2
 	case reflect.Int32, reflect.Uint32, reflect.Float32:
 		return 4
-	case reflect.Int, reflect.Uint, reflect.Pointer:
-		return int(unsafe.Sizeof(0))
-	case reflect.String:
-		return int(unsafe.Sizeof(""))
+	case reflect.Uint64, reflect.Int64, reflect.Float64, reflect.Complex64:
+		return 8
 	case reflect.Complex128:
 		return 16
+	case reflect.Int, reflect.Uint:
+		return intSize
+	case reflect.Pointer, reflect.Uintptr, reflect.Array, reflect.Map:
+		return ptrSize
+	case reflect.String:
+		return ptrSize + intSize
 	case reflect.Slice:
-		return 24
-	default:
-		return 8
+		return ptrSize + intSize + intSize
+	default: // 暂不支持的数据统一返回0
+		return 0
 	}
 }
 
