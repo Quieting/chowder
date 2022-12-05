@@ -6,7 +6,7 @@ import (
 )
 
 type value struct {
-	addr  uintptr
+	addr  unsafe.Pointer
 	typ   reflect.Type // addr 位置存储的类型
 	field *field
 }
@@ -37,15 +37,15 @@ func (v *value) size() int {
 func addr(val *value, isNew bool) uintptr {
 	// todo：添加其他指针类型数据类型（扩展 reflect.Kind)
 	if val.typ.Kind() != reflect.Pointer {
-		return val.addr
+		return uintptr(val.addr)
 	}
 
 	point := val.addr
-	val.addr = *(*uintptr)(unsafe.Pointer(val.addr)) // 指针对象取对象存储值（值是一个地址）
+	val.addr = unsafe.Pointer(*(*uintptr)(val.addr)) // 指针对象取对象存储值（值是一个地址）
 	val.typ = val.typ.Elem()
-	if val.addr == 0 && isNew {
-		val.addr = reflect.New(val.typ).Pointer()
-		*(*uintptr)(unsafe.Pointer(point)) = val.addr
+	if val.addr == nil && isNew {
+		val.addr = unsafe.Pointer(reflect.New(val.typ).Pointer())
+		*(*uintptr)(point) = uintptr(val.addr)
 	}
 
 	return addr(val, isNew)
@@ -70,7 +70,7 @@ func valueOf(v interface{}) (vals []*value) {
 	vals = make([]*value, 0, len(fields))
 	for _, f := range fields {
 		val := &value{
-			addr:  start + f.offset,
+			addr:  unsafe.Pointer(start + f.offset),
 			typ:   f.typ,
 			field: f,
 		}
